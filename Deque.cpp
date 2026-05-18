@@ -85,18 +85,12 @@ public:
         last->back = aux;
     }
     void removeFront() {
-        if(empty()) {
-            return;
-        }
         Node<T>* aux = first->next;
         first->next = aux->next;
         aux->next->back = first;
         delete aux;
     }
     void removeBack() {
-        if(empty()) {
-            return;
-        }
 	    Node<T>* aux = last->back;
 	    last->back = aux->back;
 	    aux->back->next = last;
