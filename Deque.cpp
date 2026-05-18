@@ -1,91 +1,421 @@
 #include <iostream>
 
 template<typename T>
-class Node{
+class Node {
 private:
     T item;
+
 public:
     Node* next;
     Node* back;
 
-    Node(){
+    Node() {
         next = nullptr;
         back = nullptr;
     }
 
-    Node(T item_){
+    Node(T item_) {
         item = item_;
         next = nullptr;
         back = nullptr;
     }
 
-    T& get_item();
+    T& get_item() {
+        return item;
+    }
 };
 
 template<typename T>
-T& Node<T>::get_item(){
-    return item;
-}
+class ListNavigator {
+private:
+    Node<T>* current;
+    Node<T>* endNode;
 
+public:
+    ListNavigator(Node<T>* start, Node<T>* end) {
+        current = start;
+        endNode = end;
+    }
+
+    bool hasNext() {
+        return current != endNode;
+    }
+
+    T& getCurrent() {
+        return current->get_item();
+    }
+
+    void next() {
+        if (current != endNode) {
+            current = current->next;
+        }
+    }
+};
 
 template<typename T>
-class Deque{
+using QueueNavigator = ListNavigator<T>;
+
+template<typename T>
+using StackNavigator = ListNavigator<T>;
+
+template<typename T>
+class Deque {
 private:
     Node<T>* first;
     Node<T>* last;
+
 public:
-    Deque(){
+    Deque() {
         first = new Node<T>();
         last = new Node<T>();
         first->next = last;
         last->back = first;
     }
 
-    Node<T>* getFirst();
-    Node<T>* getLast();
-    void setFront(T item);
-    void setBack(T item);
-    void removeFront();
-    T& getItemFront();
+    Node<T>* getFirst() {
+        return first;
+    }
+
+    Node<T>* getLast() {
+        return last;
+    }
+
+    void setFront(T item) {
+        Node<T>* aux = new Node<T>(item);
+        aux->next = first->next;
+        first->next->back = aux;
+        first->next = aux;
+        aux->back = first;
+    }
+
+    void setBack(T item) {
+        Node<T>* aux = new Node<T>(item);
+        aux->back = last->back;
+        last->back->next = aux;
+        aux->next = last;
+        last->back = aux;
+    }
+
+    void removeFront() {
+        Node<T>* aux = first->next;
+        first->next = aux->next;
+        aux->next->back = first;
+        delete aux;
+    }
+
+    T& getItemFront() {
+        return first->next->get_item();
+    }
+
+    ListNavigator<T> getListNavigator() {
+        return ListNavigator<T>(first->next, last);
+    }
 };
 
-template <typename T>
-Node<T>* Deque<T>::getFirst(){
-    return first;
-}
+template<typename T>
+class Queue {
+private:
+    Deque<T> deque;
+    int length;
 
-template <typename T>
-Node<T>* Deque<T>::getLast(){
-    return last;
-}
+public:
+    Queue() {
+        length = 0;
+    }
+
+    void enqueue(T item) {
+        deque.setBack(item);
+        length++;
+    }
+
+    void dequeue() {
+        if (!empty()) {
+            deque.removeFront();
+            length--;
+        }
+    }
+
+    T& front() {
+        return deque.getItemFront();
+    }
+
+    bool empty() {
+        return length == 0;
+    }
+
+    int size() {
+        return length;
+    }
+
+    QueueNavigator<T> getQueueNavigator() {
+        return QueueNavigator<T>(deque.getFirst()->next, deque.getLast());
+    }
+};
 
 template<typename T>
-void Deque<T>::setFront(T item){
-    Node<T>* aux = new Node<T>(item);
-    aux->next = first->next;
-    first->next->back = aux;
-    first->next = aux;
-    aux->back = first;
+class Stack {
+private:
+    Deque<T> deque;
+    int length;
+
+public:
+    Stack() {
+        length = 0;
+    }
+
+    void push(T item) {
+        deque.setFront(item);
+        length++;
+    }
+
+    void pop() {
+        if (!empty()) {
+            deque.removeFront();
+            length--;
+        }
+    }
+
+    T& top() {
+        return deque.getItemFront();
+    }
+
+    bool empty() {
+        return length == 0;
+    }
+
+    int size() {
+        return length;
+    }
+
+    StackNavigator<T> getStackNavigator() {
+        return StackNavigator<T>(deque.getFirst()->next, deque.getLast());
+    }
+};
+
+class Command {
+public:
+    char action;
+    int id;
+
+    Command() {
+        action = '-';
+        id = 0;
+    }
+
+    Command(char action_, int id_) {
+        action = action_;
+        id = id_;
+    }
+};
+
+bool existsInFep(Queue<Command>& fep, int id) {
+    QueueNavigator<Command> navigator = fep.getQueueNavigator();
+
+    while (navigator.hasNext()) {
+        Command command = navigator.getCurrent();
+
+        if (command.action == 'E' && command.id == id) {
+            return true;
+        }
+
+        navigator.next();
+    }
+
+    return false;
 }
 
-template <typename T>
-void Deque<T>::setBack(T item){
-    Node<T>* aux = new Node<T>(item);
-    aux->back = last->back;
-    last->back->next = aux;
-    aux->next = last;
-    last->back = aux;
+void processBiggy(
+    Queue<Command>& commands,
+    Queue<Command>& fep,
+    Queue<int>& cancel,
+    Queue<int>& desc
+) {
+    while (!commands.empty()) {
+        Command command = commands.front();
+        commands.dequeue();
+
+        if (command.action == 'E') {
+            fep.enqueue(command);
+        } else if (command.action == 'C') {
+            if (existsInFep(fep, command.id)) {
+                fep.enqueue(command);
+            } else {
+                cancel.enqueue(command.id);
+            }
+        } else if (command.action == 'A') {
+            if (existsInFep(fep, command.id)) {
+                fep.enqueue(command);
+            } else {
+                desc.enqueue(command.id);
+            }
+        } else if (command.action == '-') {
+            fep.enqueue(command);
+            break;
+        }
+    }
 }
 
-template<typename T>
-void Deque<T>::removeFront(){
-    Node<T>* aux = first->next;
-    first->next = aux->next;
-    aux->next->back = first;
-    delete aux;
+void removeFromPep(
+    int id,
+    char action,
+    Stack<int>& pep,
+    Stack<int>& aux,
+    Queue<int>& cancel,
+    Queue<int>& desc
+) {
+    while (!pep.empty() && pep.top() != id) {
+        aux.push(pep.top());
+        pep.pop();
+    }
+
+    if (!pep.empty()) {
+        pep.pop();
+
+        if (action == 'C') {
+            cancel.enqueue(id);
+        } else {
+            desc.enqueue(id);
+        }
+    }
+
+    while (!aux.empty()) {
+        pep.push(aux.top());
+        aux.pop();
+    }
 }
 
-template<typename T>
-T& Deque<T>::getItemFront(){
-    return first->next->get_item();
+void processBang(
+    Queue<Command>& fep,
+    Stack<int>& pep,
+    Stack<int>& aux,
+    Queue<int>& cancel,
+    Queue<int>& desc
+) {
+    while (!fep.empty()) {
+        Command command = fep.front();
+        fep.dequeue();
+
+        if (command.action == 'E') {
+            pep.push(command.id);
+        } else if (command.action == 'C' || command.action == 'A') {
+            removeFromPep(command.id, command.action, pep, aux, cancel, desc);
+        } else if (command.action == '-') {
+            break;
+        }
+    }
+}
+
+void printCommandQueue(const char* name, Queue<Command>& queue) {
+    std::cout << name << " = [";
+
+    QueueNavigator<Command> navigator = queue.getQueueNavigator();
+    bool first = true;
+
+    while (navigator.hasNext()) {
+        if (!first) {
+            std::cout << ", ";
+        }
+
+        Command command = navigator.getCurrent();
+        std::cout << "(" << command.action << ", " << command.id << ")";
+
+        first = false;
+        navigator.next();
+    }
+
+    if (first) {
+        std::cout << " ";
+    }
+
+    std::cout << "]\n";
+}
+
+void printIntQueue(const char* name, Queue<int>& queue) {
+    std::cout << name << " = [";
+
+    QueueNavigator<int> navigator = queue.getQueueNavigator();
+    bool first = true;
+
+    while (navigator.hasNext()) {
+        if (!first) {
+            std::cout << ", ";
+        }
+
+        std::cout << navigator.getCurrent();
+
+        first = false;
+        navigator.next();
+    }
+
+    if (first) {
+        std::cout << " ";
+    }
+
+    std::cout << "]\n";
+}
+
+void printStack(const char* name, Stack<int>& stack) {
+    std::cout << name << " = [";
+
+    StackNavigator<int> navigator = stack.getStackNavigator();
+    bool first = true;
+
+    while (navigator.hasNext()) {
+        if (!first) {
+            std::cout << ", ";
+        }
+
+        std::cout << navigator.getCurrent();
+
+        first = false;
+        navigator.next();
+    }
+
+    
+
+    if (first) {
+        std::cout << " ";
+    }
+
+    std::cout << "]\n";
+}
+
+int main() {
+    Queue<Command> commands;
+    Queue<Command> fep;
+
+    Queue<int> cancel;
+    Queue<int> desc;
+
+    Stack<int> pep;
+    Stack<int> aux;
+
+    char action;
+    int id;
+
+    while (std::cin >> action >> id) {
+        commands.enqueue(Command(action, id));
+
+        if (action == '-') {
+            break;
+        }
+    }
+
+    processBiggy(commands, fep, cancel, desc);
+
+    std::cout << "Biggy:\n";
+    printCommandQueue("FEP", fep);
+    printIntQueue("CANCEL", cancel);
+    printIntQueue("DESC", desc);
+
+    processBang(fep, pep, aux, cancel, desc);
+
+    std::cout << "\nBang:\n";
+    printCommandQueue("FEP", fep);
+    printStack("PEP", pep);
+    printStack("AUX", aux);
+    printIntQueue("CANCEL", cancel);
+    printIntQueue("DESC", desc);
+
+    return 0;
 }
