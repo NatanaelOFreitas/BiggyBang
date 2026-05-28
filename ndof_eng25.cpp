@@ -229,6 +229,7 @@ public:
     }
 };
 
+//Verifica se existe o comando dentro do FEP
 bool existsInFep(Queue<Command>& fep, int id) {
     QueueNavigator<Command> navigator = fep.getQueueNavigator();
     while (navigator.hasNext()) {
@@ -241,6 +242,7 @@ bool existsInFep(Queue<Command>& fep, int id) {
     return false;
 }
 
+//processa cada Letra salva no Biggy
 void processBiggy(Queue<Command>& commands, Queue<Command>& fep, Queue<int>& cancel, Queue<int>& desc) {
     while (!commands.empty()) {
         Command command = commands.front();
@@ -267,6 +269,7 @@ void processBiggy(Queue<Command>& commands, Queue<Command>& fep, Queue<int>& can
     }
 }
 
+//remove comando do PEP
 void removeFromPep(int id, char action, Stack<int>& pep, Stack<int>& aux, Queue<int>& cancel, Queue<int>& desc) {
     while (!pep.empty() && pep.top() != id) {
         aux.push(pep.top());
@@ -286,6 +289,7 @@ void removeFromPep(int id, char action, Stack<int>& pep, Stack<int>& aux, Queue<
     }
 }
 
+//Processa os comandos do Bang
 void processBang(Queue<Command>& fep, Stack<int>& pep, Stack<int>& aux, Queue<int>& cancel, Queue<int>& desc) {
     while (!fep.empty()) {
         Command command = fep.front();
@@ -300,6 +304,7 @@ void processBang(Queue<Command>& fep, Stack<int>& pep, Stack<int>& aux, Queue<in
     }
 }
 
+//Printa a Fila de comandos
 void printCommandQueue(const char* name, Queue<Command>& queue) {
     cout << name << " = [";
     QueueNavigator<Command> navigator = queue.getQueueNavigator();
@@ -337,6 +342,7 @@ void printIntQueue(const char* name, Queue<int>& queue) {
     cout << "]\n";
 }
 
+//Printa a Pilha
 void printStack(const char* name, Stack<int>& stack) {
     cout << name << " = [";
     StackNavigator<int> navigator = stack.getStackNavigator();
@@ -355,6 +361,8 @@ void printStack(const char* name, Stack<int>& stack) {
     cout << "]\n";
 }
 
+
+//implementa todas as classes, algoritmos e estruturas de dados determinados na Proposta da PP1 (Biggy e Banf)
 int main() {
     Queue<Command> commands;
     Queue<Command> fep;
