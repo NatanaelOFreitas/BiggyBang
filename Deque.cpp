@@ -2,6 +2,7 @@
 
 using namespace std;
 
+//declaração do nó usuado no no deque, stack e queue
 template<typename T>
 class Node {
 private:
@@ -46,9 +47,11 @@ public:
     }
 };
 
+//declarando o QueueNavigator com base no ListNavigator  
 template<typename T>
 using QueueNavigator = ListNavigator<T>;
 
+//declarando o StackNavigator com base no ListNavigator
 template<typename T>
 using StackNavigator = ListNavigator<T>;
 
@@ -65,12 +68,17 @@ public:
         last->back = first;
     }
     Node<T>* getFirst() {
+        //retorna o ponteiro que aponta para o Nó sentinela na frente da lista
         return first;
     }
     Node<T>* getLast() {
+        //retorna o ponteiro que aponta para o Nó sentinela do final da lista
         return last;
     }
     void setFront(T item) {
+        //adiciona um novo Nó posicionado na frente da lista 
+        //ponteiro next do sentinela inicial passa a apontar pra esse novo Nó adicionado 
+        //e no novo Nó o next aponta para o antigo Nó na posição 1 e o back para o sentinela inicial
         Node<T>* aux = new Node<T>(item);
         aux->next = first->next;
         first->next->back = aux;
@@ -78,6 +86,9 @@ public:
         aux->back = first;
     }
     void setBack(T item) {
+        //adiciona um novo Nó posicionado no final da lista 
+        //ponteiro back do sentinela final passa a apontar pra esse novo Nó adicionado no fim da fila 
+        //e no novo Nó o back aponta para o antigo Nó no fim da lista e o next para o sentinela final
         Node<T>* aux = new Node<T>(item);
         aux->back = last->back;
         last->back->next = aux;
@@ -85,6 +96,11 @@ public:
         last->back = aux;
     }
     void removeFront() {
+        //verifica se a lista ta vazia, se não tiver
+        //remove o Nó posicionado na frente da lista 
+        //ponteiro next do Nó sentinela inicial passa a apontar pro Nó que estava na posição 2
+        //e nesse Nó, o back que antes apontava pro Nó na posição 1 passa apontar pro sentinela inicial
+        //e remove o Nó que estava na posição 1 da memória
         if(empty()) {
             return;
         }
@@ -94,6 +110,11 @@ public:
         delete aux;
     }
     void removeBack() {
+        //verifica se a lista ta vazia, se não tiver
+        //remove o Nó posicionado na ultima posição da lista 
+        //ponteiro back do Nó sentinela final passa a apontar pro Nó que estava na penúltima posição
+        //e nesse Nó, o next que antes apontava pro Nó na última posição passa apontar pro sentinela final
+        //e remove o Nó que estava na última posição da memória
         if(empty()) {
             return;
         }
@@ -103,9 +124,11 @@ public:
 	    delete aux;
     }
     T& getItemFront() {
+        //retorna o dado amarzenado no Nó na posição 1
         return first->next->get_item();
     }
     ListNavigator<T> getListNavigator() {
+        //retorna o Navigator
         return ListNavigator<T>(first->next, last);
     }
 };
@@ -113,6 +136,7 @@ public:
 template<typename T>
 class Queue {
 private:
+    //A fila implementa um deque, mas apenas chama as funções necessárias para manter o funcionamento da fila (FIFO)
     Deque<T> deque;
     int length;
 public:
@@ -120,25 +144,32 @@ public:
         length = 0;
     }
     void enqueue(T item) {
+        //adiciona um Nó à fila (adiciona à última posição)
         deque.setBack(item);
         length++;
     }
     void dequeue() {
+        //verifica se a fila está vazia, se não estiver
+        //remove o Nó da fila (remove o Nó na primeira posição)
         if (!empty()) {
             deque.removeFront();
             length--;
         }
     }
     T& front() {
+        //retorna o dado salvo no Nó na primeira posição da fila
         return deque.getItemFront();
     }
     bool empty() {
+        //verifica se a lista está vazia
         return length == 0;
     }
     int size() {
+        //retorna o tamanho da fila
         return length;
     }
     QueueNavigator<T> getQueueNavigator() {
+        //implementa uma QueueNavigator com base no ListNavigator
         return QueueNavigator<T>(deque.getFirst()->next, deque.getLast());
     }
 };
@@ -146,6 +177,7 @@ public:
 template<typename T>
 class Stack {
 private:
+    //A pilha implementa um deque, mas apenas chama as funções necessárias para manter o funcionamento da pilha (FILO)
     Deque<T> deque;
     int length;
 public:
@@ -153,25 +185,32 @@ public:
         length = 0;
     }
     void push(T item) {
+        //adiciona um Nó à pilha (adiciona à primeira posição)
         deque.setFront(item);
         length++;
     }
     void pop() {
+        //verifica se a fila está vazia, se não estiver
+        //remove o Nó da pilha (remove o Nó na primeira posição)
         if (!empty()) {
             deque.removeFront();
             length--;
         }
     }
     T& top() {
+        //retorna o dado salvo no Nó no topo da pilha
         return deque.getItemFront();
     }
     bool empty() {
+        //verifica se a lista está vazia
         return length == 0;
     }
     int size() {
+        //retorna o tamanho da fila
         return length;
     }
     StackNavigator<T> getStackNavigator() {
+        //implementa uma StackNavigator com base no ListNavigator
         return StackNavigator<T>(deque.getFirst()->next, deque.getLast());
     }
 };
